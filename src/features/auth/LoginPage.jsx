@@ -24,7 +24,6 @@ const LoginPage = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
-    // Clear error when user types
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }

@@ -71,46 +71,48 @@ const Settings = () => {
   const fetchSettings = async () => {
     try {
       setInitialLoading(true);
-      const { data } = await api.get('/api/settings');
       
-      if (data.company) {
-        setCompanyData(data.company);
-      }
-      
-      if (data.notifications) {
-        setNotificationData(data.notifications);
-      }
-      
-      if (data.apiKeys) {
-        setApiData({
-          whatsappApiKey: data.apiKeys.whatsapp || '',
-          googleMapsApiKey: data.apiKeys.googleMaps || '',
-          paymentGatewayKey: data.apiKeys.paymentGateway || '',
+      // Set profile data from logged-in user first
+      if (user) {
+        setProfileData({
+          name: user.name || '',
+          email: user.email || '',
+          phone: user.phone || '',
+          role: user.role || '',
+          timezone: user.timezone || 'Asia/Kolkata',
         });
       }
 
-      // Set profile data from logged-in user
-      if (user) {
-        setProfileData({
-          name: user.name || '',
-          email: user.email || '',
-          phone: user.phone || '',
-          role: user.role || '',
-          timezone: user.timezone || 'Asia/Kolkata',
-        });
+      // Try to fetch settings, but don't fail if endpoint doesn't exist
+      try {
+        const { data } = await api.get('/api/settings');
+        
+        if (data.company) {
+          setCompanyData(data.company);
+        }
+        
+        if (data.notifications) {
+          setNotificationData(data.notifications);
+        }
+        
+        if (data.apiKeys) {
+          setApiData({
+            whatsappApiKey: data.apiKeys.whatsapp || '',
+            googleMapsApiKey: data.apiKeys.googleMaps || '',
+            paymentGatewayKey: data.apiKeys.paymentGateway || '',
+          });
+        }
+      } catch (apiError) {
+        // If it's a 404, the endpoint doesn't exist yet - that's okay
+        if (apiError.response?.status === 404) {
+          console.log('Settings endpoint not implemented yet - using defaults');
+        } else {
+          // For other errors, log them but don't break the UI
+          console.error('Error fetching settings:', apiError);
+        }
       }
     } catch (error) {
-      console.error('Error fetching settings:', error);
-      // Set default profile data from user store if API fails
-      if (user) {
-        setProfileData({
-          name: user.name || '',
-          email: user.email || '',
-          phone: user.phone || '',
-          role: user.role || '',
-          timezone: user.timezone || 'Asia/Kolkata',
-        });
-      }
+      console.error('Error initializing settings:', error);
     } finally {
       setInitialLoading(false);
     }
@@ -181,7 +183,13 @@ const Settings = () => {
       }
     } catch (error) {
       console.error(`Error saving ${type} settings:`, error);
-      toast.error(error.response?.data?.message || `Failed to save ${type} settings`);
+      
+      // Handle 404 errors specifically
+      if (error.response?.status === 404) {
+        toast.error(`The ${type} settings endpoint is not implemented yet. Please contact your administrator.`);
+      } else {
+        toast.error(error.response?.data?.message || `Failed to save ${type} settings`);
+      }
     } finally {
       setLoading(false);
     }
@@ -219,7 +227,12 @@ const Settings = () => {
       });
     } catch (error) {
       console.error('Error changing password:', error);
-      toast.error(error.response?.data?.message || 'Failed to update password');
+      
+      if (error.response?.status === 404) {
+        toast.error('Password change endpoint is not implemented yet. Please contact your administrator.');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to update password');
+      }
     } finally {
       setLoading(false);
     }
