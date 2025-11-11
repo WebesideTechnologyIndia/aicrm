@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { useState } from 'react';
 import { 
   LayoutDashboard, 
   Users, 
@@ -11,13 +12,48 @@ import {
   FileText,
   Handshake,
   MessageSquare,
-  Building2
+  Building2,
+  ChevronDown,
+  ChevronRight,
+  Sparkles,
+  Mic,
+  MessageCircle,
+  Volume2
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import useAuthStore from '../../store/authStore';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const { user } = useAuthStore();
+  const [isAIOpen, setIsAIOpen] = useState(false);
+
+  const aiFeatures = [
+    {
+      category: 'Text To Speech',
+      path: '/ai/text-to-speech',
+      icon: Volume2
+    },
+    {
+      category: 'Speech To Text',
+      path: '/ai/speech-to-text',
+      icon: Mic
+    },
+    {
+      category: 'Text To Dialogue',
+      path: '/ai/text-to-dialogue',
+      icon: MessageCircle
+    },
+    {
+      category: 'Sound Effect',
+      path: '/ai/sound-effect',
+      icon: Sparkles
+    },
+    {
+      category: 'Voices',
+      path: '/ai/voices',
+      icon: Volume2
+    }
+  ];
 
   const menuItems = [
     {
@@ -74,7 +110,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       title: 'Users',
       path: '/users',
       icon: Users,
-      roles: ['admin', 'manager', 'director'],
+      roles: ['admin', 'manager', 'director', 'user'],
     },
     {
       title: 'Settings',
@@ -83,7 +119,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     },
   ];
 
-  // Filter menu items based on user role
   const filteredMenuItems = menuItems.filter(item => {
     if (!item.roles) return true;
     return item.roles.includes(user?.role);
@@ -120,7 +155,71 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            {filteredMenuItems.map((item) => (
+            {/* Dashboard - First Item */}
+            {filteredMenuItems.slice(0, 1).map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-primary-50 text-primary-600'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  )
+                }
+              >
+                <item.icon className="h-5 w-5" />
+                <span>{item.title}</span>
+              </NavLink>
+            ))}
+
+            {/* AI Features Dropdown */}
+            <div>
+              <button
+                onClick={() => setIsAIOpen(!isAIOpen)}
+                className="flex items-center justify-between w-full px-4 py-3 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-5 w-5" />
+                  <span>AI Features</span>
+                </div>
+                {isAIOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+
+              {/* AI Submenu */}
+              {isAIOpen && (
+                <div className="ml-4 mt-1 space-y-1 border-l-2 border-gray-200 pl-4">
+                  {aiFeatures.map((feature, idx) => {
+                    const FeatureIcon = feature.icon;
+                    return (
+                      <NavLink
+                        key={idx}
+                        to={feature.path}
+                        className={({ isActive }) =>
+                          cn(
+                            'flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors',
+                            isActive
+                              ? 'bg-primary-100 text-primary-700 font-medium'
+                              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                          )
+                        }
+                      >
+                        <FeatureIcon className="h-4 w-4" />
+                        {feature.category}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Other Menu Items (skip Dashboard as it's already shown) */}
+            {filteredMenuItems.slice(1).map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}

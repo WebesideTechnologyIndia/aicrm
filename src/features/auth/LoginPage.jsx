@@ -24,6 +24,7 @@ const LoginPage = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+    // Clear error when user types
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -164,9 +165,8 @@ const LoginPage = () => {
           <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <p className="text-xs font-semibold text-gray-700 mb-2">Demo Credentials:</p>
             <div className="text-xs text-gray-600 space-y-1">
-              <p><strong>Admin:</strong> admin@aicrm.com / admin123</p>
-              <p><strong>Sales:</strong> sales@aicrm.com / sales123</p>
-              <p><strong>Manager:</strong> manager@aicrm.com / manager123</p>
+              <p><strong>Email:</strong> deepak@test.com</p>
+              <p><strong>Password:</strong> 123456</p>
             </div>
           </div>
         </div>

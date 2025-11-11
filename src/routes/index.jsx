@@ -7,6 +7,7 @@ import AuthLayout from '../components/layout/AuthLayout';
 
 // Auth
 import LoginPage from '../features/auth/LoginPage';
+import RegisterPage from '../features/auth/RegisterPage';
 
 // Dashboard
 import Dashboard from '../features/dashboard/Dashboard';
@@ -50,6 +51,13 @@ import WhatsAppIntegration from '../features/whatsapp/WhatsAppIntegration';
 
 // Settings
 import Settings from '../features/settings/Settings';
+
+// AI Features
+import TextToSpeech from '../features/ai/text-to-speech/TextToSpeech';
+import SpeechToText from '../features/ai/speech-to-text/SpeechToText';
+import TextToDialogue from '../features/ai/text-to-dialogue/TextToDialogue';
+import SoundEffect from '../features/ai/sound-effect/SoundEffect'; 
+import Voices from '../features/ai/voices/Voices';
 
 // Error Pages
 import NotFound from '../components/common/NotFound';
@@ -204,6 +212,34 @@ const router = createBrowserRouter([
           {
             path: 'settings',
             element: <Settings />,
+          },
+
+          // Register
+          {
+            path: 'register',
+            element: <RegisterPage />,
+          },
+
+          // AI Features - All Routes Active
+          {
+            path: 'ai/text-to-speech',
+            element: <TextToSpeech />,
+          },
+          {
+            path: 'ai/speech-to-text',
+            element: <SpeechToText />,
+          },
+          {
+            path: 'ai/text-to-dialogue',
+            element: <TextToDialogue />,
+          },
+          {
+            path: 'ai/sound-effect', 
+            element: <SoundEffect />,
+          },
+          {
+            path: 'ai/voices',
+            element: <Voices />,
           },
         ],
       },

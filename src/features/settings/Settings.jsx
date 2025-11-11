@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Building2, 
   User, 
@@ -7,7 +7,6 @@ import {
   Mail, 
   Smartphone,
   Globe,
-  CreditCard,
   Key,
   Save
 } from 'lucide-react';
@@ -17,25 +16,29 @@ import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import Textarea from '../../components/ui/Textarea';
 import toast from 'react-hot-toast';
+import api from '../../services/api';
+import useAuthStore from '../../store/authStore';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('company');
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const { user, updateUser } = useAuthStore();
 
   const [companyData, setCompanyData] = useState({
-    name: 'AI CRM Real Estate',
-    email: 'info@aicrm.com',
-    phone: '+91 98765 43210',
-    address: 'Sector 54, Gurgaon, Haryana',
-    website: 'www.aicrm.com',
-    gst: 'GST1234567890',
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    website: '',
+    gst: '',
   });
 
   const [profileData, setProfileData] = useState({
-    name: 'Admin User',
-    email: 'admin@aicrm.com',
-    phone: '+91 98765 43210',
-    role: 'admin',
+    name: '',
+    email: '',
+    phone: '',
+    role: '',
     timezone: 'Asia/Kolkata',
   });
 
@@ -49,10 +52,69 @@ const Settings = () => {
   });
 
   const [apiData, setApiData] = useState({
-    whatsappApiKey: '••••••••••••••••',
-    googleMapsApiKey: '••••••••••••••••',
-    paymentGatewayKey: '••••••••••••••••',
+    whatsappApiKey: '',
+    googleMapsApiKey: '',
+    paymentGatewayKey: '',
   });
+
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+  // Load settings on component mount
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      setInitialLoading(true);
+      const { data } = await api.get('/api/settings');
+      
+      if (data.company) {
+        setCompanyData(data.company);
+      }
+      
+      if (data.notifications) {
+        setNotificationData(data.notifications);
+      }
+      
+      if (data.apiKeys) {
+        setApiData({
+          whatsappApiKey: data.apiKeys.whatsapp || '',
+          googleMapsApiKey: data.apiKeys.googleMaps || '',
+          paymentGatewayKey: data.apiKeys.paymentGateway || '',
+        });
+      }
+
+      // Set profile data from logged-in user
+      if (user) {
+        setProfileData({
+          name: user.name || '',
+          email: user.email || '',
+          phone: user.phone || '',
+          role: user.role || '',
+          timezone: user.timezone || 'Asia/Kolkata',
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      // Set default profile data from user store if API fails
+      if (user) {
+        setProfileData({
+          name: user.name || '',
+          email: user.email || '',
+          phone: user.phone || '',
+          role: user.role || '',
+          timezone: user.timezone || 'Asia/Kolkata',
+        });
+      }
+    } finally {
+      setInitialLoading(false);
+    }
+  };
 
   const handleCompanyChange = (e) => {
     setCompanyData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -73,13 +135,91 @@ const Settings = () => {
     setApiData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handlePasswordFieldChange = (e) => {
+    setPasswordData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
   const handleSave = async (type) => {
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success('Settings saved successfully!');
+      let response;
+      
+      switch (type) {
+        case 'company':
+          response = await api.put('/api/settings/company', companyData);
+          toast.success('Company settings saved successfully!');
+          break;
+          
+        case 'profile':
+          response = await api.put('/api/auth/update-profile', profileData);
+          // Update user in auth store
+          updateUser({
+            name: profileData.name,
+            email: profileData.email,
+            phone: profileData.phone,
+            timezone: profileData.timezone,
+          });
+          toast.success('Profile updated successfully!');
+          break;
+          
+        case 'notifications':
+          response = await api.put('/api/settings/notifications', notificationData);
+          toast.success('Notification preferences saved!');
+          break;
+          
+        case 'api':
+          response = await api.put('/api/settings/api-keys', {
+            whatsapp: apiData.whatsappApiKey,
+            googleMaps: apiData.googleMapsApiKey,
+            paymentGateway: apiData.paymentGatewayKey,
+          });
+          toast.success('API keys saved successfully!');
+          break;
+          
+        default:
+          toast.error('Invalid settings type');
+      }
     } catch (error) {
-      toast.error('Failed to save settings');
+      console.error(`Error saving ${type} settings:`, error);
+      toast.error(error.response?.data?.message || `Failed to save ${type} settings`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    // Validation
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.put('/api/settings/password', {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
+      
+      toast.success('Password updated successfully!');
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+    } catch (error) {
+      console.error('Error changing password:', error);
+      toast.error(error.response?.data?.message || 'Failed to update password');
     } finally {
       setLoading(false);
     }
@@ -97,7 +237,20 @@ const Settings = () => {
     { value: 'Asia/Kolkata', label: 'India (IST)' },
     { value: 'America/New_York', label: 'New York (EST)' },
     { value: 'Europe/London', label: 'London (GMT)' },
+    { value: 'Asia/Dubai', label: 'Dubai (GST)' },
+    { value: 'Asia/Singapore', label: 'Singapore (SGT)' },
   ];
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -188,7 +341,7 @@ const Settings = () => {
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 rounded-full bg-primary-600 flex items-center justify-center text-white text-2xl font-bold">
-                A
+                {profileData.name ? profileData.name.charAt(0).toUpperCase() : 'U'}
               </div>
               <Button variant="outline" size="sm">Change Photo</Button>
             </div>
@@ -363,12 +516,36 @@ const Settings = () => {
         <div className="space-y-6">
           <Card title="Change Password">
             <div className="space-y-4">
-              <Input label="Current Password" type="password" />
-              <Input label="New Password" type="password" />
-              <Input label="Confirm New Password" type="password" />
+              <Input 
+                label="Current Password" 
+                type="password"
+                name="currentPassword"
+                value={passwordData.currentPassword}
+                onChange={handlePasswordFieldChange}
+              />
+              <Input 
+                label="New Password" 
+                type="password"
+                name="newPassword"
+                value={passwordData.newPassword}
+                onChange={handlePasswordFieldChange}
+              />
+              <Input 
+                label="Confirm New Password" 
+                type="password"
+                name="confirmPassword"
+                value={passwordData.confirmPassword}
+                onChange={handlePasswordFieldChange}
+              />
             </div>
             <div className="flex justify-end mt-6">
-              <Button>Update Password</Button>
+              <Button 
+                onClick={handlePasswordChange} 
+                loading={loading}
+                disabled={!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+              >
+                Update Password
+              </Button>
             </div>
           </Card>
 

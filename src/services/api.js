@@ -2,7 +2,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5173',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -62,68 +62,69 @@ api.interceptors.response.use(
 export default api;
 
 export const authAPI = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  logout: () => api.post('/auth/logout'),
-  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
-  resetPassword: (token, password) => api.post('/auth/reset-password', { token, password }),
-  getProfile: () => api.get('/auth/profile'),
+  register: (userData) => api.post('/api/auth/register', userData),
+  login: (credentials) => api.post('/api/auth/login', credentials),
+  logout: () => api.post('/api/auth/logout'),
+  getProfile: () => api.get('/api/auth/profile'),
+  forgotPassword: (email) => api.post('/api/auth/forgot-password', { email }),
+  resetPassword: (token, password) => api.post('/api/auth/reset-password', { token, password }),
 };
 
 export const usersAPI = {
-  getAll: (params) => api.get('/users', { params }),
-  getById: (id) => api.get(`/users/${id}`),
-  create: (data) => api.post('/users', data),
-  update: (id, data) => api.put(`/users/${id}`, data),
-  delete: (id) => api.delete(`/users/${id}`),
-  updatePermissions: (id, permissions) => api.put(`/users/${id}/permissions`, permissions),
+  getAll: (params) => api.get('/api/users', { params }),
+  getById: (id) => api.get(`/api/users/${id}`),
+  create: (data) => api.post('/api/users', data),
+  update: (id, data) => api.put(`/api/users/${id}`, data),
+  delete: (id) => api.delete(`/api/users/${id}`),
+  updatePermissions: (id, permissions) => api.put(`/api/users/${id}/permissions`, permissions),
 };
 
 export const leadsAPI = {
-  getAll: (params) => api.get('/leads', { params }),
-  getById: (id) => api.get(`/leads/${id}`),
-  create: (data) => api.post('/leads', data),
-  update: (id, data) => api.put(`/leads/${id}`, data),
-  delete: (id) => api.delete(`/leads/${id}`),
+  getAll: (params) => api.get('/api/leads', { params }),
+  getById: (id) => api.get(`/api/leads/${id}`),
+  create: (data) => api.post('/api/leads', data),
+  update: (id, data) => api.put(`/api/leads/${id}`, data),
+  delete: (id) => api.delete(`/api/leads/${id}`),
   import: (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post('/leads/import', formData, {
+    return api.post('/api/leads/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
-  assign: (leadId, userId) => api.post(`/leads/${leadId}/assign`, { userId }),
-  updateStage: (leadId, stage) => api.put(`/leads/${leadId}/stage`, { stage }),
-  addNote: (leadId, note) => api.post(`/leads/${leadId}/notes`, { note }),
+  assign: (leadId, userId) => api.post(`/api/leads/${leadId}/assign`, { userId }),
+  updateStage: (leadId, stage) => api.put(`/api/leads/${leadId}/stage`, { stage }),
+  addNote: (leadId, note) => api.post(`/api/leads/${leadId}/notes`, { note }),
 };
 
 export const clientsAPI = {
-  getAll: (params) => api.get('/clients', { params }),
-  getById: (id) => api.get(`/clients/${id}`),
-  create: (data) => api.post('/clients', data),
-  update: (id, data) => api.put(`/clients/${id}`, data),
-  delete: (id) => api.delete(`/clients/${id}`),
+  getAll: (params) => api.get('/api/clients', { params }),
+  getById: (id) => api.get(`/api/clients/${id}`),
+  create: (data) => api.post('/api/clients', data),
+  update: (id, data) => api.put(`/api/clients/${id}`, data),
+  delete: (id) => api.delete(`/api/clients/${id}`),
 };
 
 export const propertiesAPI = {
-  getAll: (params) => api.get('/properties', { params }),
-  getById: (id) => api.get(`/properties/${id}`),
-  create: (data) => api.post('/properties', data),
-  update: (id, data) => api.put(`/properties/${id}`, data),
-  delete: (id) => api.delete(`/properties/${id}`),
-  assignPartner: (propertyId, partnerId) => api.post(`/properties/${propertyId}/assign`, { partnerId }),
+  getAll: (params) => api.get('/api/properties', { params }),
+  getById: (id) => api.get(`/api/properties/${id}`),
+  create: (data) => api.post('/api/properties', data),
+  update: (id, data) => api.put(`/api/properties/${id}`, data),
+  delete: (id) => api.delete(`/api/properties/${id}`),
+  assignPartner: (propertyId, partnerId) => api.post(`/api/properties/${propertyId}/assign`, { partnerId }),
 };
 
 export const bookingsAPI = {
-  getAll: (params) => api.get('/bookings', { params }),
-  getById: (id) => api.get(`/bookings/${id}`),
-  create: (data) => api.post('/bookings', data),
-  update: (id, data) => api.put(`/bookings/${id}`, data),
-  delete: (id) => api.delete(`/bookings/${id}`),
-  addPayment: (bookingId, payment) => api.post(`/bookings/${bookingId}/payments`, payment),
+  getAll: (params) => api.get('/api/bookings', { params }),
+  getById: (id) => api.get(`/api/bookings/${id}`),
+  create: (data) => api.post('/api/bookings', data),
+  update: (id, data) => api.put(`/api/bookings/${id}`, data),
+  delete: (id) => api.delete(`/api/bookings/${id}`),
+  addPayment: (bookingId, payment) => api.post(`/api/bookings/${bookingId}/payments`, payment),
 };
 
 export const dashboardAPI = {
-  getStats: () => api.get('/dashboard/stats'),
-  getAIHistory: (params) => api.get('/dashboard/ai-history', { params }),
-  getAnalytics: (params) => api.get('/dashboard/analytics', { params }),
+  getStats: () => api.get('/api/dashboard/stats'),
+  getAIHistory: (params) => api.get('/api/dashboard/ai-history', { params }),
+  getAnalytics: (params) => api.get('/api/dashboard/analytics', { params }),
 };
