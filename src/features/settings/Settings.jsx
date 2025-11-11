@@ -1,3 +1,5 @@
+// src/features/settings/Settings.jsx
+
 import { useState, useEffect } from 'react';
 import { 
   Building2, 
@@ -16,7 +18,7 @@ import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import Textarea from '../../components/ui/Textarea';
 import toast from 'react-hot-toast';
-import api from '../../services/api';
+import { authAPI, settingsAPI } from '../../services/api';
 import useAuthStore from '../../store/authStore';
 
 const Settings = () => {
@@ -72,20 +74,36 @@ const Settings = () => {
     try {
       setInitialLoading(true);
       
-      // Set profile data from logged-in user first
-      if (user) {
-        setProfileData({
-          name: user.name || '',
-          email: user.email || '',
-          phone: user.phone || '',
-          role: user.role || '',
-          timezone: user.timezone || 'Asia/Kolkata',
-        });
+      // Fetch user profile first
+      try {
+        const { data: profileResponse } = await authAPI.getProfile();
+        if (profileResponse.success && profileResponse.user) {
+          const userData = profileResponse.user;
+          setProfileData({
+            name: userData.name || '',
+            email: userData.email || '',
+            phone: userData.phone || '',
+            role: userData.role || '',
+            timezone: userData.timezone || 'Asia/Kolkata',
+          });
+        }
+      } catch (profileError) {
+        console.error('Error fetching profile:', profileError);
+        // Fallback to user from store
+        if (user) {
+          setProfileData({
+            name: user.name || '',
+            email: user.email || '',
+            phone: user.phone || '',
+            role: user.role || '',
+            timezone: user.timezone || 'Asia/Kolkata',
+          });
+        }
       }
 
-      // Try to fetch settings, but don't fail if endpoint doesn't exist
+      // Try to fetch settings
       try {
-        const { data } = await api.get('/api/settings');
+        const { data } = await settingsAPI.get();
         
         if (data.company) {
           setCompanyData(data.company);
@@ -103,11 +121,9 @@ const Settings = () => {
           });
         }
       } catch (apiError) {
-        // If it's a 404, the endpoint doesn't exist yet - that's okay
         if (apiError.response?.status === 404) {
           console.log('Settings endpoint not implemented yet - using defaults');
         } else {
-          // For other errors, log them but don't break the UI
           console.error('Error fetching settings:', apiError);
         }
       }
@@ -148,29 +164,26 @@ const Settings = () => {
       
       switch (type) {
         case 'company':
-          response = await api.put('/api/settings/company', companyData);
+          response = await settingsAPI.updateCompany(companyData);
           toast.success('Company settings saved successfully!');
           break;
           
         case 'profile':
-          response = await api.put('/api/auth/update-profile', profileData);
-          // Update user in auth store
-          updateUser({
-            name: profileData.name,
-            email: profileData.email,
-            phone: profileData.phone,
-            timezone: profileData.timezone,
-          });
-          toast.success('Profile updated successfully!');
+          response = await authAPI.updateProfile(profileData);
+          if (response.data.success) {
+            // Update user in auth store
+            updateUser(response.data.user);
+            toast.success('Profile updated successfully!');
+          }
           break;
           
         case 'notifications':
-          response = await api.put('/api/settings/notifications', notificationData);
+          response = await settingsAPI.updateNotifications(notificationData);
           toast.success('Notification preferences saved!');
           break;
           
         case 'api':
-          response = await api.put('/api/settings/api-keys', {
+          response = await settingsAPI.updateApiKeys({
             whatsapp: apiData.whatsappApiKey,
             googleMaps: apiData.googleMapsApiKey,
             paymentGateway: apiData.paymentGatewayKey,
@@ -184,7 +197,6 @@ const Settings = () => {
     } catch (error) {
       console.error(`Error saving ${type} settings:`, error);
       
-      // Handle 404 errors specifically
       if (error.response?.status === 404) {
         toast.error(`The ${type} settings endpoint is not implemented yet. Please contact your administrator.`);
       } else {
@@ -214,7 +226,7 @@ const Settings = () => {
 
     setLoading(true);
     try {
-      await api.put('/api/settings/password', {
+      await settingsAPI.updatePassword({
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       });
@@ -576,8 +588,8 @@ const Settings = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
-                  <p className="font-medium text-gray-900">Windows - Chrome</p>
-                  <p className="text-sm text-gray-600">Current session • Faridabad, India</p>
+                  <p className="font-medium text-gray-900">Current Device</p>
+                  <p className="text-sm text-gray-600">Current session • {new Date().toLocaleString()}</p>
                 </div>
                 <span className="text-sm text-green-600 font-medium">Active</span>
               </div>

@@ -1,3 +1,5 @@
+// src/services/api.js
+
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -66,6 +68,7 @@ export const authAPI = {
   login: (credentials) => api.post('/api/auth/login', credentials),
   logout: () => api.post('/api/auth/logout'),
   getProfile: () => api.get('/api/auth/profile'),
+  updateProfile: (data) => api.put('/api/auth/update-profile', data),
   forgotPassword: (email) => api.post('/api/auth/forgot-password', { email }),
   resetPassword: (token, password) => api.post('/api/auth/reset-password', { token, password }),
 };
@@ -73,10 +76,20 @@ export const authAPI = {
 export const usersAPI = {
   getAll: (params) => api.get('/api/users', { params }),
   getById: (id) => api.get(`/api/users/${id}`),
-  create: (data) => api.post('/api/users', data),
+  create: (data) => api.post('/api/users/create', data),
   update: (id, data) => api.put(`/api/users/${id}`, data),
   delete: (id) => api.delete(`/api/users/${id}`),
   updatePermissions: (id, permissions) => api.put(`/api/users/${id}/permissions`, permissions),
+};
+
+export const teamsAPI = {
+  getAll: (params) => api.get('/api/teams', { params }),
+  getById: (id) => api.get(`/api/teams/${id}`),
+  create: (data) => api.post('/api/teams/create', data),
+  update: (id, data) => api.put(`/api/teams/update/${id}`, data),
+  delete: (id) => api.delete(`/api/teams/delete/${id}`),
+  addMember: (teamId, userId) => api.post(`/api/teams/${teamId}/members`, { userId }),
+  removeMember: (teamId, userId) => api.delete(`/api/teams/${teamId}/members/${userId}`),
 };
 
 export const leadsAPI = {
@@ -127,4 +140,12 @@ export const dashboardAPI = {
   getStats: () => api.get('/api/dashboard/stats'),
   getAIHistory: (params) => api.get('/api/dashboard/ai-history', { params }),
   getAnalytics: (params) => api.get('/api/dashboard/analytics', { params }),
+};
+
+export const settingsAPI = {
+  get: () => api.get('/api/settings'),
+  updateCompany: (data) => api.put('/api/settings/company', data),
+  updateNotifications: (data) => api.put('/api/settings/notifications', data),
+  updateApiKeys: (data) => api.put('/api/settings/api-keys', data),
+  updatePassword: (data) => api.put('/api/settings/password', data),
 };
