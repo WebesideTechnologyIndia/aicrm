@@ -31,6 +31,14 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status, data } = error.response;
+      const url = error.config?.url || '';
+
+      // Silently handle 404 for settings endpoints (not implemented yet in backend)
+      // But allow /api/companies as it's a valid endpoint
+      if (status === 404 && url.includes('/api/settings') && !url.includes('/api/companies')) {
+        console.log(`⚠️ Settings endpoint not ready: ${url}`);
+        return Promise.reject(error);
+      }
 
       switch (status) {
         case 401:
@@ -43,7 +51,10 @@ api.interceptors.response.use(
           toast.error('You do not have permission to perform this action.');
           break;
         case 404:
-          toast.error('Resource not found.');
+          // Don't show toast for settings 404s - already handled above
+          if (!url.includes('/api/settings')) {
+            toast.error('Resource not found.');
+          }
           break;
         case 500:
           toast.error('Server error. Please try again later.');
@@ -148,4 +159,11 @@ export const settingsAPI = {
   updateNotifications: (data) => api.put('/api/settings/notifications', data),
   updateApiKeys: (data) => api.put('/api/settings/api-keys', data),
   updatePassword: (data) => api.put('/api/settings/password', data),
+};
+
+// Company API - For settings page
+export const companyAPI = {
+  get: () => api.get('/api/companies'),
+  create: (data) => api.post('/api/companies', data),
+  update: (id, data) => api.put(`/api/companies/${id}`, data),
 };

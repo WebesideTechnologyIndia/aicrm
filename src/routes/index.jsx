@@ -16,6 +16,10 @@ import Dashboard from '../features/dashboard/Dashboard';
 import AllUsers from '../features/users/AllUsers';
 import AddEditUser from '../features/users/AddEditUser';
 
+// Teams
+import Teams from '../features/teams/Teams';
+import AddTeamMembers from '../features/teams/AddTeamMembers';
+
 // Leads
 import AllLeads from '../features/leads/AllLeads';
 import AddEditLead from '../features/leads/AddEditLead';
@@ -108,6 +112,16 @@ const router = createBrowserRouter([
           {
             path: 'users/edit/:id',
             element: <AddEditUser />,
+          },
+
+          // Teams Management
+          {
+            path: 'teams',
+            element: <Teams />,
+          },
+          {
+            path: 'teams/:id/members',
+            element: <AddTeamMembers />,
           },
 
           // Leads Management

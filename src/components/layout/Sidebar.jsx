@@ -155,24 +155,21 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            {/* Dashboard - First Item */}
-            {filteredMenuItems.slice(0, 1).map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-primary-50 text-primary-600'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  )
-                }
-              >
-                <item.icon className="h-5 w-5" />
-                <span>{item.title}</span>
-              </NavLink>
-            ))}
+            {/* Dashboard */}
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-primary-50 text-primary-600'
+                    : 'text-gray-700 hover:bg-gray-100'
+                )
+              }
+            >
+              <LayoutDashboard className="h-5 w-5" />
+              <span>Dashboard</span>
+            </NavLink>
 
             {/* AI Features Dropdown */}
             <div>
@@ -218,7 +215,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               )}
             </div>
 
-            {/* Other Menu Items (skip Dashboard as it's already shown) */}
+            {/* All Other Menu Items (except Dashboard which is already shown) */}
             {filteredMenuItems.slice(1).map((item) => (
               <NavLink
                 key={item.path}
